@@ -1,0 +1,17 @@
+[
+  {
+    "name": "Alpha Group",
+    "email": "contato@alphagroup.com",
+    "whatsapp": "+5511999990001"
+  },
+  {
+    "name": "Beta Corp",
+    "email": "contato@betacorp.com",
+    "whatsapp": "+5511999990002"
+  },
+  {
+    "name": "Delta Solutions",
+    "email": "contato@deltasolutions.com",
+    "whatsapp": "+5511999990003"
+  }
+]

@@ -1,0 +1,32 @@
+# Environment variables
+.env
+.env.local
+
+# Metabase binary
+metabase.jar
+
+# Temporary debug scripts
+scratch/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# Project specific
+reports/*.pdf
+globalforce_usa_3years_2023_2025.csv
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Databases
+*.db
+*.sqlite

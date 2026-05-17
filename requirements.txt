@@ -1,0 +1,8 @@
+pandas
+numpy
+sqlalchemy
+pymysql
+faker
+playwright
+python-dotenv
+twilio
