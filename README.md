@@ -101,11 +101,11 @@ Acesse `http://localhost:3000` e conecte ao banco `workforce_bi`.
 python etl/generate_mock_data.py
 ```
 
-### 7. Gerar relatórios e enviar
+### 7. Iniciar o sistema
 ```bash
-python etl/report_generator.py
+python globalforce.py
 ```
-Os PDFs são salvos em `reports/` e enviados automaticamente para os contatos configurados em `clients.json`.
+O menu principal permite gerenciar clientes e gerar relatórios em um único lugar. Os PDFs são salvos em `reports/` e enviados automaticamente por e-mail e WhatsApp.
 
 ---
 
@@ -128,6 +128,7 @@ Edite o `clients.json` com os dados reais dos seus clientes:
 
 ```
 globalforce-workforce-bi/
+├── globalforce.py             # Ponto de entrada — menu principal
 ├── etl/
 │   ├── pipeline.py            # ETL principal — carga no MySQL
 │   ├── generate_mock_data.py  # Geração de dados sintéticos
