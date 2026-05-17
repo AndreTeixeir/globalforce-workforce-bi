@@ -268,8 +268,20 @@ Edite o arquivo `clients.json` com os dados reais dos seus clientes:
 
 ---
 
-## 👤 Autor
+## 👥 Equipe — NoCountry S04-26
 
-**André Luiz Ribeiro**  
-[linkedin.com/in/andreluizr](https://www.linkedin.com/in/andreluizr)  
-Data Analytics | Business Intelligence | Metabase | SQL | Python
+Este projeto foi desenvolvido em equipe no programa **NoCountry**, simulação de ambiente profissional de tecnologia.
+
+| Participante | Contribuição |
+|---|---|
+| **André Luiz Ribeiro** | Arquitetura geral, ETL, banco de dados, dashboard Metabase |
+| **Arley** | Desenvolvimento e integração |
+| **André Teixeira** | Automação de envio de relatórios por **e-mail** e **WhatsApp** (CallMeBot), geração de PDF com Playwright e pipeline de entrega aos clientes |
+
+---
+
+## 👤 Autor deste fork
+
+**André Teixeira**  
+[github.com/AndreTeixeir](https://github.com/AndreTeixeir)  
+Data Analytics | Business Intelligence | Python | Automação
