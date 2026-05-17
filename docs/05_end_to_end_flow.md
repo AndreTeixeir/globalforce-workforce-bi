@@ -95,7 +95,7 @@
 |---|---|
 | Revisão | Analista verifica os KPIs no dashboard após a carga |
 | Filtros | Define os parâmetros no script de geração |
-| Exportação | Executa `python etl/report_generator.py` para gerar PDFs em lote |
+| Exportação | Executa `python globalforce.py` e seleciona a opção de geração de relatórios |
 | Envio | Gerente de Conta envia o PDF ao cliente por e-mail |
 
 ---
@@ -132,7 +132,7 @@
 [x] Executar: python etl/pipeline.py
 [x] Verificar log de execução (confirmação de 3.1M de registros)
 [ ] Acessar o Metabase e confirmar atualização dos KPIs
-[ ] Executar: python etl/report_generator.py
+[ ] Executar: python globalforce.py → opção [5] ou [6]
 [ ] Validar arquivos PDF na pasta /reports
 [ ] Enviar ao cliente
 ```
