@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GlobalForce · Workforce Management BI</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+
+    /* ── Header ── */
+    header {
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .logo {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 20px; color: #fff;
+      flex-shrink: 0;
+    }
+    header h1 { font-size: 18px; font-weight: 600; color: #f1f5f9; }
+    header .subtitle { font-size: 12px; color: #64748b; }
+    header nav { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .meta-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; color: #60a5fa; text-decoration: none;
+      padding: 5px 12px; border: 1px solid #1d4ed8; border-radius: 8px;
+      transition: all 0.15s;
+    }
+    .meta-link:hover { background: #1d4ed8; color: #fff; }
+
+    /* ── Main ── */
+    main { padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
+
+    /* ── KPI Grid ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .kpi-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 20px 22px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: #334155;
+      transition: background 0.3s;
+    }
+    .kpi-card.ok::before   { background: #22c55e; }
+    .kpi-card.warn::before { background: #f59e0b; }
+    .kpi-card.bad::before  { background: #ef4444; }
+    .kpi-card .label {
+      font-size: 11px; color: #94a3b8;
+      text-transform: uppercase; letter-spacing: 0.07em;
+      margin-bottom: 10px;
+    }
+    .kpi-card .value {
+      font-size: 34px; font-weight: 700; color: #f1f5f9;
+      line-height: 1; margin-bottom: 6px;
+      transition: color 0.3s;
+    }
+    .kpi-card.ok   .value { color: #4ade80; }
+    .kpi-card.warn .value { color: #fbbf24; }
+    .kpi-card.bad  .value { color: #f87171; }
+    .kpi-card .sub { font-size: 11px; color: #64748b; }
+    .kpi-card .bench {
+      display: inline-block; margin-top: 10px;
+      font-size: 10px; padding: 2px 8px; border-radius: 99px;
+      background: #0f172a; color: #94a3b8; border: 1px solid #1e293b;
+    }
+    .kpi-skeleton .value { color: #334155; }
+
+    /* ── Bottom Grid ── */
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    /* ── Panel ── */
+    .panel {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 22px 24px;
+    }
+    .panel-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .panel-header h2 { font-size: 14px; font-weight: 600; color: #f1f5f9; }
+
+    /* ── Buttons ── */
+    .btn {
+      border: none; cursor: pointer; border-radius: 8px;
+      font-size: 13px; font-weight: 500; padding: 8px 16px;
+      transition: all 0.15s; line-height: 1.4;
+    }
+    .btn-primary { background: #3b82f6; color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: #2563eb; }
+    .btn-success { background: #16a34a; color: #fff; }
+    .btn-success:hover:not(:disabled) { background: #15803d; }
+    .btn-ghost { background: transparent; border: 1px solid #334155; color: #94a3b8; padding: 6px 10px; }
+    .btn-ghost:hover:not(:disabled) { background: #334155; color: #f1f5f9; }
+    .btn-danger-ghost { background: transparent; border: 1px solid #7f1d1d; color: #f87171; padding: 6px 10px; }
+    .btn-danger-ghost:hover:not(:disabled) { background: #7f1d1d; color: #fff; }
+    .btn-sm { padding: 5px 12px; font-size: 12px; }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ── Client List ── */
+    .client-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 0; border-bottom: 1px solid #1e3a5f22;
+    }
+    .client-row:last-child { border-bottom: none; }
+    .client-avatar {
+      width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0;
+      background: linear-gradient(135deg, #1d4ed8, #6366f1);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 14px; color: #fff;
+    }
+    .client-info { flex: 1; min-width: 0; }
+    .client-name { font-size: 14px; font-weight: 500; color: #f1f5f9; }
+    .client-meta { font-size: 11px; color: #64748b; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .client-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .empty-state { font-size: 13px; color: #64748b; padding: 12px 0; }
+
+    /* ── Reports ── */
+    .report-controls { display: flex; gap: 10px; margin-bottom: 14px; }
+    .select-wrap { flex: 1; }
+    select.select-client {
+      width: 100%; background: #0f172a; border: 1px solid #334155;
+      border-radius: 8px; padding: 8px 12px; color: #f1f5f9;
+      font-size: 13px; outline: none; cursor: pointer;
+    }
+    select.select-client:focus { border-color: #3b82f6; }
+
+    /* Badge */
+    .badge {
+      font-size: 11px; padding: 3px 10px; border-radius: 99px;
+      font-weight: 600; display: inline-flex; align-items: center; gap: 5px;
+    }
+    .badge-idle    { background: #0f172a; color: #64748b; border: 1px solid #334155; }
+    .badge-running { background: #1e3a8a; color: #93c5fd; border: 1px solid #1d4ed8; }
+    .badge-done    { background: #14532d; color: #4ade80; border: 1px solid #15803d; }
+    .badge-error   { background: #7f1d1d; color: #fca5a5; border: 1px solid #b91c1c; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      display: inline-block; width: 10px; height: 10px;
+      border: 2px solid #1d4ed8; border-top-color: #93c5fd;
+      border-radius: 50%; animation: spin 0.7s linear infinite;
+    }
+
+    /* Log terminal */
+    .log-box {
+      background: #060d1f;
+      border: 1px solid #1e3a5f;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-family: 'Consolas', 'Fira Code', monospace;
+      font-size: 12px;
+      color: #7dd3fc;
+      height: 260px;
+      overflow-y: auto;
+      line-height: 1.6;
+    }
+    .log-box .log-ok  { color: #4ade80; }
+    .log-box .log-err { color: #f87171; }
+    .log-box .log-sep { color: #334155; }
+    .log-box .log-muted { color: #475569; }
+    .log-init { color: #475569; font-style: italic; }
+
+    /* ── Modal ── */
+    .modal-bg {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0, 0, 0, 0.65); z-index: 200;
+      align-items: center; justify-content: center;
+      backdrop-filter: blur(2px);
+    }
+    .modal-bg.open { display: flex; }
+    .modal {
+      background: #1e293b; border: 1px solid #334155;
+      border-radius: 16px; padding: 28px; width: 420px; max-width: 95vw;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      animation: modalIn 0.15s ease-out;
+    }
+    @keyframes modalIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .modal h3 { font-size: 16px; font-weight: 600; color: #f1f5f9; margin-bottom: 22px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+    .form-group input {
+      width: 100%; background: #0f172a; border: 1px solid #334155;
+      border-radius: 8px; padding: 9px 12px; color: #f1f5f9; font-size: 14px;
+      outline: none; transition: border-color 0.15s;
+    }
+    .form-group input:focus { border-color: #3b82f6; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 22px; }
+
+    /* ── Reports Viewer ── */
+    .reports-section { margin-top: 20px; }
+    .reports-grid {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 16px;
+      height: 520px;
+    }
+    .reports-list {
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .report-card {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .report-card:hover { border-color: #3b82f6; background: #0f1f3d; }
+    .report-card.active { border-color: #3b82f6; background: #0f1f3d; box-shadow: 0 0 0 1px #3b82f6; }
+    .report-card .rc-client { font-size: 13px; font-weight: 600; color: #f1f5f9; margin-bottom: 4px; }
+    .report-card .rc-date { font-size: 11px; color: #64748b; }
+    .report-card .rc-icon { font-size: 18px; margin-bottom: 6px; }
+    .pdf-viewer-wrap {
+      background: #060d1f;
+      border: 1px solid #1e3a5f;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #pdf-viewer {
+      width: 100%; height: 100%;
+      border: none;
+      display: none;
+    }
+    .pdf-placeholder {
+      color: #334155;
+      font-size: 14px;
+      text-align: center;
+      padding: 20px;
+    }
+    .pdf-placeholder .ph-icon { font-size: 40px; margin-bottom: 10px; display: block; }
+    .no-reports { font-size: 13px; color: #64748b; padding: 8px 0; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">G</div>
+  <div>
+    <h1>GlobalForce · Workforce Management BI</h1>
+    <div class="subtitle">Relatórios executivos automatizados</div>
+  </div>
+  <nav>
+    <a href="http://localhost:3000" target="_blank" class="meta-link">↗ Dashboard Metabase</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-skeleton" id="card-turnover">
+      <div class="label">Turnover</div>
+      <div class="value" id="kpi-turnover">…</div>
+      <div class="sub">média histórica</div>
+      <span class="bench">benchmark &lt; 5%</span>
+    </div>
+    <div class="kpi-card kpi-skeleton" id="card-utilization">
+      <div class="label">Capacidade Operacional</div>
+      <div class="value" id="kpi-utilization">…</div>
+      <div class="sub">horas trabalhadas / planejadas</div>
+      <span class="bench">alvo 75–95%</span>
+    </div>
+    <div class="kpi-card kpi-skeleton" id="card-cost">
+      <div class="label">Custo Total (USD)</div>
+      <div class="value" id="kpi-cost">…</div>
+      <div class="sub">acumulado todos os clientes</div>
+    </div>
+    <div class="kpi-card kpi-skeleton" id="card-goal">
+      <div class="label">Atingimento de Metas</div>
+      <div class="value" id="kpi-goal">…</div>
+      <div class="sub">média dos clientes</div>
+      <span class="bench">benchmark &gt; 80%</span>
+    </div>
+  </div>
+
+  <!-- Bottom Grid -->
+  <div class="bottom-grid">
+
+    <!-- Clients Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>Clientes</h2>
+        <button class="btn btn-primary btn-sm" onclick="openModal()">+ Adicionar</button>
+      </div>
+      <div id="clients-list"><p class="empty-state">Carregando...</p></div>
+    </div>
+
+    <!-- Reports Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>Relatórios</h2>
+        <span class="badge badge-idle" id="pipeline-badge">Aguardando</span>
+      </div>
+      <div class="report-controls">
+        <div class="select-wrap">
+          <select class="select-client" id="report-client-select">
+            <option value="">Todos os clientes</option>
+          </select>
+        </div>
+        <button class="btn btn-success" id="btn-run" onclick="runReports()">▶ Gerar e Enviar</button>
+      </div>
+      <div class="log-box" id="log-box">
+        <span class="log-init">Clique em "Gerar e Enviar" para iniciar o pipeline...</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Reports Viewer -->
+  <div class="reports-section">
+    <div class="panel">
+      <div class="panel-header">
+        <h2>Relatórios Gerados</h2>
+        <button class="btn btn-ghost btn-sm" onclick="loadReports()">↻ Atualizar</button>
+      </div>
+      <div class="reports-grid">
+        <div class="reports-list" id="reports-list">
+          <p class="no-reports">Carregando...</p>
+        </div>
+        <div class="pdf-viewer-wrap">
+          <iframe id="pdf-viewer" title="Visualizador de Relatório"></iframe>
+          <div class="pdf-placeholder" id="pdf-placeholder">
+            <span class="ph-icon">📄</span>
+            Selecione um relatório para visualizar
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Modal add/edit -->
+<div class="modal-bg" id="modal-bg" onclick="onModalBgClick(event)">
+  <div class="modal">
+    <h3 id="modal-title">Adicionar Cliente</h3>
+    <input type="hidden" id="modal-idx" value="-1">
+    <div class="form-group">
+      <label>Nome *</label>
+      <input type="text" id="modal-name" placeholder="Ex: Acme Corp" onkeydown="onModalKey(event)">
+    </div>
+    <div class="form-group">
+      <label>E-mail</label>
+      <input type="email" id="modal-email" placeholder="contato@empresa.com" onkeydown="onModalKey(event)">
+    </div>
+    <div class="form-group">
+      <label>WhatsApp</label>
+      <input type="text" id="modal-whatsapp" placeholder="+5511999990000" onkeydown="onModalKey(event)">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveClient()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── KPIs ──────────────────────────────────────────────────────────────────────
+async function loadKPIs() {
+  try {
+    const r = await fetch('/api/kpis');
+    const d = await r.json();
+    if (d.error) { console.warn('KPI error:', d.error); return; }
+
+    setKPI('turnover',    d.turnover + '%',  d.turnover > 5 ? 'bad' : 'ok');
+    setKPI('utilization', d.utilization + '%', d.utilization >= 75 && d.utilization <= 95 ? 'ok' : (d.utilization < 75 ? 'warn' : 'bad'));
+    setKPI('cost',        '$' + Number(d.total_cost).toLocaleString('en-US', { maximumFractionDigits: 0 }), '');
+    setKPI('goal',        d.avg_goal + '%',  d.avg_goal >= 80 ? 'ok' : 'warn');
+  } catch (e) {
+    console.warn('KPIs unavailable (DB offline?):', e.message);
+  }
+}
+
+function setKPI(id, value, status) {
+  const card = document.getElementById('card-' + id);
+  card.classList.remove('kpi-skeleton');
+  if (status) card.classList.add(status);
+  document.getElementById('kpi-' + id).textContent = value;
+}
+
+// ── Clients ───────────────────────────────────────────────────────────────────
+let clients = [];
+
+async function loadClients() {
+  const r = await fetch('/api/clients');
+  clients = await r.json();
+  renderClients();
+  renderSelect();
+}
+
+function renderClients() {
+  const el = document.getElementById('clients-list');
+  if (!clients.length) {
+    el.innerHTML = '<p class="empty-state">Nenhum cliente cadastrado.</p>';
+    return;
+  }
+  el.innerHTML = clients.map((c, i) => `
+    <div class="client-row">
+      <div class="client-avatar">${c.name.charAt(0).toUpperCase()}</div>
+      <div class="client-info">
+        <div class="client-name">${esc(c.name)}</div>
+        <div class="client-meta">${esc(c.email || '—')} &nbsp;·&nbsp; ${esc(c.whatsapp || '—')}</div>
+      </div>
+      <div class="client-actions">
+        <button class="btn btn-ghost btn-sm" title="Editar" onclick="openModal(${i})">✏</button>
+        <button class="btn btn-danger-ghost btn-sm" title="Remover" onclick="deleteClient(${i})">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderSelect() {
+  const sel = document.getElementById('report-client-select');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Todos os clientes</option>' +
+    clients.map((c, i) => `<option value="${i}">${esc(c.name)}</option>`).join('');
+  if (cur !== '' && clients[parseInt(cur)]) sel.value = cur;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+function openModal(idx = -1) {
+  document.getElementById('modal-idx').value = idx;
+  if (idx >= 0) {
+    const c = clients[idx];
+    document.getElementById('modal-title').textContent = 'Editar Cliente';
+    document.getElementById('modal-name').value     = c.name;
+    document.getElementById('modal-email').value    = c.email    || '';
+    document.getElementById('modal-whatsapp').value = c.whatsapp || '';
+  } else {
+    document.getElementById('modal-title').textContent = 'Adicionar Cliente';
+    document.getElementById('modal-name').value = '';
+    document.getElementById('modal-email').value = '';
+    document.getElementById('modal-whatsapp').value = '';
+  }
+  document.getElementById('modal-bg').classList.add('open');
+  setTimeout(() => document.getElementById('modal-name').focus(), 50);
+}
+
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('open');
+}
+
+function onModalBgClick(e) {
+  if (e.target === e.currentTarget) closeModal();
+}
+
+function onModalKey(e) {
+  if (e.key === 'Enter') saveClient();
+  if (e.key === 'Escape') closeModal();
+}
+
+async function saveClient() {
+  const idx = parseInt(document.getElementById('modal-idx').value);
+  const payload = {
+    name:     document.getElementById('modal-name').value.trim(),
+    email:    document.getElementById('modal-email').value.trim(),
+    whatsapp: document.getElementById('modal-whatsapp').value.trim(),
+  };
+  if (!payload.name) { document.getElementById('modal-name').focus(); return; }
+
+  const url    = idx >= 0 ? `/api/clients/${idx}` : '/api/clients';
+  const method = idx >= 0 ? 'PUT' : 'POST';
+  await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+  closeModal();
+  loadClients();
+}
+
+async function deleteClient(idx) {
+  if (!confirm(`Remover "${clients[idx].name}"?`)) return;
+  await fetch(`/api/clients/${idx}`, { method: 'DELETE' });
+  loadClients();
+}
+
+// ── Pipeline SSE ──────────────────────────────────────────────────────────────
+let sse = null;
+
+async function runReports() {
+  const selIdx = document.getElementById('report-client-select').value;
+  const payload = selIdx !== '' ? { clients: [clients[parseInt(selIdx)].name] } : {};
+
+  const btn = document.getElementById('btn-run');
+  btn.disabled = true;
+  clearLog();
+  setBadge('running');
+
+  const r = await fetch('/api/reports/run', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!r.ok) {
+    const d = await r.json();
+    appendLog('❌ ' + (d.error || 'Erro ao iniciar pipeline'), 'err');
+    btn.disabled = false;
+    setBadge('error');
+    return;
+  }
+
+  if (sse) sse.close();
+  sse = new EventSource('/api/reports/stream');
+
+  sse.onmessage = e => {
+    const msg = e.data.trim();
+    if (!msg) return;
+    if (msg === '__DONE__') {
+      sse.close(); sse = null;
+      btn.disabled = false;
+      setBadge('done');
+      appendLog('─'.repeat(50), 'sep');
+      appendLog('✅ Pipeline concluído com sucesso!', 'ok');
+      loadReports();
+      return;
+    }
+    const cls = msg.includes('✅') ? 'ok'
+              : msg.includes('❌') ? 'err'
+              : msg.startsWith('===') || msg.startsWith('---') ? 'sep'
+              : '';
+    appendLog(msg, cls);
+  };
+
+  sse.onerror = () => {
+    if (sse) { sse.close(); sse = null; }
+    btn.disabled = false;
+    setBadge('error');
+    appendLog('❌ Conexão com o servidor perdida.', 'err');
+  };
+}
+
+function clearLog() {
+  document.getElementById('log-box').innerHTML = '';
+}
+
+function appendLog(msg, cls = '') {
+  const log = document.getElementById('log-box');
+  const div = document.createElement('div');
+  if (cls) div.className = 'log-' + cls;
+  div.textContent = msg;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+function setBadge(state) {
+  const b = document.getElementById('pipeline-badge');
+  b.className = 'badge badge-' + state;
+  const labels = {
+    idle:    'Aguardando',
+    running: '⟳ Executando',
+    done:    '✓ Concluído',
+    error:   '✕ Erro',
+  };
+  b.innerHTML = state === 'running'
+    ? `<span class="spinner"></span>${labels[state]}`
+    : labels[state];
+}
+
+// ── Reports Viewer ───────────────────────────────────────────────────────────
+let activeReport = null;
+
+async function loadReports() {
+  const r = await fetch('/api/reports/list');
+  const reports = await r.json();
+  const el = document.getElementById('reports-list');
+
+  if (!reports.length) {
+    el.innerHTML = '<p class="no-reports">Nenhum relatório gerado ainda.</p>';
+    return;
+  }
+
+  el.innerHTML = reports.map(rep => `
+    <div class="report-card${activeReport === rep.filename ? ' active' : ''}"
+         onclick="openReport('${rep.filename}', this)">
+      <div class="rc-icon">📄</div>
+      <div class="rc-client">${esc(rep.client)}</div>
+      <div class="rc-date">${esc(rep.date)}</div>
+    </div>
+  `).join('');
+
+  if (activeReport) {
+    showPDF('/reports/file/' + activeReport);
+  }
+}
+
+function openReport(filename, cardEl) {
+  activeReport = filename;
+  document.querySelectorAll('.report-card').forEach(c => c.classList.remove('active'));
+  cardEl.classList.add('active');
+  showPDF('/reports/file/' + filename);
+}
+
+function showPDF(url) {
+  const iframe = document.getElementById('pdf-viewer');
+  const placeholder = document.getElementById('pdf-placeholder');
+  iframe.src = url;
+  iframe.style.display = 'block';
+  placeholder.style.display = 'none';
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadKPIs();
+loadClients();
+loadReports();
+</script>
+</body>
+</html>
