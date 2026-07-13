@@ -1,6 +1,6 @@
 # GlobalForce · Workforce Management BI
 
-> Projeto desenvolvido no programa **NoCountry** — simulação de ambiente profissional de tecnologia.  
+> Projeto desenvolvido no programa **NoCountry** — simulação de ambiente profissional de tecnologia.
 > Equipe: S04-26 | Data Science
 
 ---
@@ -10,6 +10,8 @@
 Sistema de Business Intelligence para gestão de força de trabalho que automatiza a geração e entrega de relatórios executivos mensais para clientes corporativos.
 
 O processo que antes levava **3 dias de trabalho manual no Excel** passou a ser executado em **menos de 1 hora**, com envio automático por e-mail e WhatsApp.
+
+O sistema pode ser operado por uma **interface web (Flask)** ou por um **menu de terminal (CLI)** — ambos permitem gerenciar clientes e disparar a geração e o envio dos relatórios.
 
 ---
 
@@ -26,6 +28,8 @@ Geração de PDF automática (Playwright)
     ↓
 Envio por E-mail + WhatsApp (CallMeBot)
 ```
+
+A geração e o envio são disparados pela interface web ou pela CLI, que consomem os dados do MySQL e orquestram o pipeline.
 
 ---
 
@@ -48,6 +52,8 @@ Envio por E-mail + WhatsApp (CallMeBot)
 | Banco de Dados | MySQL 8.x |
 | Modelagem | Star schema (1 fato + 4 dimensões) |
 | Dashboard | Metabase (open source) |
+| Interface Web | Flask (API REST + painel com atualização em tempo real via SSE) |
+| Interface CLI | Menu de terminal em Python |
 | Geração de PDF | Playwright (headless browser) |
 | Envio de E-mail | Gmail SMTP (smtplib) |
 | Envio de WhatsApp | CallMeBot API (gratuito) |
@@ -89,7 +95,7 @@ CALLMEBOT_API_KEY=sua_chave_callmebot
 4. Cole a chave no `.env` em `CALLMEBOT_API_KEY`
 
 ### 5. Subir o Metabase
-Baixe o `metabase.jar` em https://www.metabase.com/start/oss/jar.html  
+Baixe o `metabase.jar` em https://www.metabase.com/start/oss/jar.html
 Salve em uma pasta sem acentos ou espaços (ex: `C:\metabase\`) e rode:
 ```bash
 java -jar metabase.jar
@@ -102,21 +108,31 @@ python etl/generate_mock_data.py
 ```
 
 ### 7. Iniciar o sistema
+
+**Opção A — Interface web (Flask):**
+```bash
+python app.py
+```
+Acesse `http://localhost:5000`. O painel permite gerenciar clientes, acompanhar os KPIs e gerar/enviar relatórios, com progresso do pipeline exibido em tempo real.
+
+**Opção B — Menu de terminal (CLI):**
 ```bash
 python globalforce.py
 ```
-O menu principal permite gerenciar clientes e gerar relatórios em um único lugar. Os PDFs são salvos em `reports/` e enviados automaticamente por e-mail e WhatsApp.
+O menu principal permite gerenciar clientes e gerar relatórios em um único lugar.
+
+Em ambos os modos, os PDFs são salvos em `reports/` e enviados automaticamente por e-mail e WhatsApp.
 
 ---
 
 ## Configurar Clientes
 
-Edite o `clients.json` com os dados reais dos seus clientes:
+Edite o `clients.json` com os dados dos clientes. **Use dados de exemplo/teste** — evite expor e-mails e telefones reais em um repositório público:
 ```json
 [
   {
     "name": "Nome do Cliente",
-    "email": "email@cliente.com",
+    "email": "contato@exemplo.com",
     "whatsapp": "+5511999990000"
   }
 ]
@@ -128,7 +144,10 @@ Edite o `clients.json` com os dados reais dos seus clientes:
 
 ```
 globalforce-workforce-bi/
-├── globalforce.py             # Ponto de entrada — menu principal
+├── app.py                     # Interface web (Flask) — API REST + painel
+├── globalforce.py             # Interface CLI — menu de terminal
+├── templates/
+│   └── index.html            # Front-end do painel web
 ├── etl/
 │   ├── pipeline.py            # ETL principal — carga no MySQL
 │   ├── generate_mock_data.py  # Geração de dados sintéticos
@@ -151,7 +170,7 @@ globalforce-workforce-bi/
 |---|---|
 | **André Luiz Ribeiro** | Arquitetura do sistema, pipeline ETL, modelagem do banco de dados (star schema) e dashboard Metabase |
 | **Arley** | Suporte ao projeto |
-| **André Teixeira** | Automação de entrega de relatórios — geração de PDF com Playwright, envio por e-mail (Gmail SMTP) e WhatsApp (CallMeBot) |
+| **André Teixeira** | Interface web (Flask — API REST com CRUD de clientes e painel em tempo real), menu CLI unificado e automação de entrega de relatórios: geração de PDF com Playwright e envio por e-mail (Gmail SMTP) e WhatsApp (CallMeBot) |
 
 ---
 
