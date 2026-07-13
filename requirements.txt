@@ -5,5 +5,4 @@ pymysql
 faker
 playwright
 python-dotenv
-twilio
 flask
