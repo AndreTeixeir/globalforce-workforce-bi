@@ -1,0 +1,12 @@
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["notebooks"]
+
+[tool.ruff.lint]
+# Regras padrão do ruff: erros de sintaxe, nomes indefinidos, imports e variáveis sem uso
+select = ["E4", "E7", "E9", "F"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
