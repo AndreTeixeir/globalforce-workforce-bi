@@ -3,24 +3,12 @@ GlobalForce · Workforce Management BI
 Script principal — Gerenciamento de clientes e envio de relatórios.
 """
 
-import json
-import os
 import sys
+
+import clients_store
 
 sys.stdout.reconfigure(encoding="utf-8")
 sys.stdin.reconfigure(encoding="utf-8")
-
-CLIENTS_FILE = os.path.join(os.path.dirname(__file__), "clients.json")
-
-
-def load_clients():
-    with open(CLIENTS_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def save_clients(clients):
-    with open(CLIENTS_FILE, "w", encoding="utf-8") as f:
-        json.dump(clients, f, indent=2, ensure_ascii=False)
 
 
 def list_clients(clients):
@@ -45,8 +33,7 @@ def add_client(clients):
         return
     email = input("  Email:             ").strip()
     whatsapp = input("  WhatsApp (+55...):  ").strip()
-    clients.append({"name": name, "email": email, "whatsapp": whatsapp})
-    save_clients(clients)
+    clients_store.add_client(name, email, whatsapp)
     print(f"\n  Cliente '{name}' adicionado com sucesso!")
 
 
@@ -70,15 +57,19 @@ def edit_client(clients):
     email    = input(f"  Email [{c.get('email', '')}]: ").strip()
     whatsapp = input(f"  WhatsApp [{c.get('whatsapp', '')}]: ").strip()
 
+    fields = {}
     if name:
-        c["name"] = name
+        fields["name"] = name
     if email:
-        c["email"] = email
+        fields["email"] = email
     if whatsapp:
-        c["whatsapp"] = whatsapp
+        fields["whatsapp"] = whatsapp
 
-    save_clients(clients)
-    print(f"\n  Cliente '{c['name']}' atualizado com sucesso!")
+    updated = clients_store.update_client(c["id"], fields)
+    if updated is None:
+        print("  Cliente não encontrado (removido em outra sessão?).")
+        return
+    print(f"\n  Cliente '{updated['name']}' atualizado com sucesso!")
 
 
 def remove_client(clients):
@@ -97,19 +88,17 @@ def remove_client(clients):
     name = clients[idx]["name"]
     confirm = input(f"  Confirma remover '{name}'? (s/N): ").strip().lower()
     if confirm == "s":
-        clients.pop(idx)
-        save_clients(clients)
-        print(f"\n  Cliente '{name}' removido com sucesso!")
+        if clients_store.delete_client(clients[idx]["id"]):
+            print(f"\n  Cliente '{name}' removido com sucesso!")
+        else:
+            print("  Cliente não encontrado (removido em outra sessão?).")
     else:
         print("  Operação cancelada.")
 
 
 def run_reports(targets=None):
     from etl.report_generator import run_full_pipeline
-    if targets:
-        run_full_pipeline(clients=[c["name"] for c in targets])
-    else:
-        run_full_pipeline()
+    run_full_pipeline(targets if targets else clients_store.load_clients())
 
 
 def select_client_for_report(clients):
@@ -136,7 +125,7 @@ def main():
     print("=" * 57)
 
     while True:
-        clients = load_clients()
+        clients = clients_store.load_clients()
         print(f"\n  Clientes cadastrados: {len(clients)}")
         print("\n  ── Clientes ──────────────────────────────────")
         print("  [1] Listar clientes")
