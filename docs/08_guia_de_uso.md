@@ -10,10 +10,10 @@ Antes de usar qualquer interface, garanta que os serviços estejam ativos:
 
 ### 1. MySQL
 O banco de dados deve estar rodando com o schema `workforce_bi` populado.  
-Para popular do zero, rode:
+Para popular do zero, rode **uma** das opções (cada uma recria as tabelas):
 ```bash
-python etl/generate_mock_data.py
-python etl/pipeline.py
+python etl/generate_mock_data.py   # base pequena de demonstração
+python etl/pipeline.py             # base completa a partir do CSV
 ```
 
 ### 2. Metabase
@@ -29,17 +29,24 @@ O Metabase ficará disponível em **http://localhost:3000**.
 ### 3. Arquivo `.env`
 Copie `.env.example` para `.env` e preencha as credenciais:
 ```
+APP_USERNAME=admin
+APP_PASSWORD=uma_senha_forte
+
 DB_USER=root
 DB_PASSWORD=sua_senha
 DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=workforce_bi
 
+METABASE_DASHBOARD_URL=http://localhost:3000/public/dashboard/SEU-UUID
+
 SENDER_EMAIL=seu-email@gmail.com
 SENDER_PASSWORD=sua-senha-de-app-gmail
 
 CALLMEBOT_API_KEY=sua_api_key
+CALLMEBOT_PHONE=+55DDDSEUNUMERO
 ```
+> O WhatsApp é uma **notificação para um número de teste** (`CALLMEBOT_PHONE`): a API gratuita do CallMeBot só entrega mensagens ao número que gerou a chave. O número fica apenas no `.env`, fora do código e do git.
 
 ---
 
@@ -66,9 +73,10 @@ python globalforce.py
 2. O sistema abre o Metabase via navegador headless (Playwright)
 3. Captura o dashboard como PDF e salva em `reports/`
 4. Envia o PDF por **e-mail** (Gmail SMTP)
-5. Envia notificação por **WhatsApp** (CallMeBot)
+5. Envia notificação por **WhatsApp** para o número de teste (CallMeBot)
 
-> O Metabase precisa estar rodando em `localhost:3000` para o relatório ser gerado.
+> O Metabase precisa estar rodando e `METABASE_DASHBOARD_URL` configurada para o relatório ser gerado.
+> Se um cliente falhar, os demais continuam; o resumo final lista quem teve problema.
 
 ---
 
@@ -78,7 +86,9 @@ python globalforce.py
 ```bash
 python app.py
 ```
-Acesse no navegador: **http://localhost:5000**
+Acesse no navegador: **http://localhost:5000** e entre com o `APP_USERNAME`/`APP_PASSWORD` do `.env`.
+
+> O servidor escuta apenas na própria máquina e o modo debug fica desligado. Para depurar, use `FLASK_DEBUG=1` no `.env`.
 
 ---
 
@@ -125,14 +135,14 @@ Gerenciamento completo de clientes sem sair da página.
 1. No seletor, escolha **"Todos os clientes"** ou selecione um cliente específico
 2. Clique em **▶ Gerar e Enviar**
 3. Acompanhe o progresso em tempo real no log abaixo do botão
-4. O badge de status indica: `Aguardando` → `⟳ Executando` → `✓ Concluído`
+4. O badge de status indica: `Aguardando` → `⟳ Executando` → `✓ Concluído` (ou `✕ Erro`, se algum cliente falhou — o log mostra qual)
 
 **O pipeline executa em sequência para cada cliente:**
 - Abre o Metabase via browser headless
-- Aguarda os gráficos carregarem (~20s)
+- Aguarda a página parar de carregar dados e mais alguns segundos (`REPORT_EXTRA_WAIT_SECONDS`)
 - Exporta o dashboard como PDF em `reports/`
 - Envia o PDF por e-mail
-- Envia notificação por WhatsApp
+- Envia notificação por WhatsApp para o número de teste
 
 > Não feche o navegador nem recarregue a página durante a execução.
 
@@ -166,7 +176,7 @@ reports/
   Relatorio_Executivo_Delta_Solutions_20260518.pdf
 ```
 
-Os PDFs são nomeados automaticamente com o nome do cliente e a data de geração.
+Os PDFs são nomeados automaticamente com o nome do cliente e a data de geração. Acentos e caracteres especiais do nome são convertidos (ex.: `Ação & Cia.` → `Acao_Cia`).
 
 ---
 
