@@ -11,6 +11,7 @@ Descrição: Gera dados fictícios realistas e popula as tabelas
 import pandas as pd
 from faker import Faker
 from sqlalchemy import create_engine, text
+from sqlalchemy.engine import URL
 import random
 from datetime import date, timedelta
 import warnings
@@ -22,21 +23,33 @@ load_dotenv()
 
 warnings.filterwarnings("ignore")
 
-# ── CONFIGURAÇÕES ────────────────────────────────────────────
-DB_USER     = os.getenv("DB_USER", "root")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
-DB_HOST     = os.getenv("DB_HOST", "localhost")
-DB_PORT     = os.getenv("DB_PORT", "3306")
-DB_NAME     = os.getenv("DB_NAME", "workforce_bi")
-
 fake = Faker("pt_BR")
 random.seed(42)
 Faker.seed(42)
 
+# Mesmos nomes usados em clients.json e em etl/pipeline.py: o gerador de PDF
+# filtra o dashboard pelo nome do cliente, então eles precisam coincidir.
+CLIENTES = [
+    (1, "GlobalForce Internal"),
+    (2, "Alpha Group"),
+    (3, "Beta Corp"),
+    (4, "Delta Solutions"),
+    (5, "Epsilon Inc"),
+]
+
+
 # ── CONEXÃO COM O BANCO ──────────────────────────────────────
-engine = create_engine(
-    f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-)
+def get_engine():
+    # URL.create escapa caracteres especiais da senha (@, :, /) e trata senha vazia
+    url = URL.create(
+        "mysql+pymysql",
+        username=os.getenv("DB_USER", "root"),
+        password=os.getenv("DB_PASSWORD", ""),
+        host=os.getenv("DB_HOST", "localhost"),
+        port=int(os.getenv("DB_PORT", "3306")),
+        database=os.getenv("DB_NAME", "workforce_bi"),
+    )
+    return create_engine(url)
 
 # ── 1. DIM_DATA ──────────────────────────────────────────────
 def generate_dim_data():
@@ -104,16 +117,9 @@ def generate_dim_colaborador(n=80):
 
 # ── 4. DIM_CLIENTE ───────────────────────────────────────────
 def generate_dim_cliente(colaboradores_df, n_assignments=200):
-    clients = [
-        (1, "Empresa Alpha"),
-        (2, "Grupo Beta"),
-        (3, "Corporação Gamma"),
-        (4, "Holding Delta"),
-        (5, "Conglomerado Epsilon"),
-    ]
+    clients = CLIENTES
     roles = ["Analista Jr.", "Analista Sr.", "Consultor", "Especialista", "Coordenador"]
     records = []
-    employee_ids = colaboradores_df["employee_id"].tolist()
     for i in range(1, n_assignments + 1):
         client = random.choice(clients)
         records.append({
@@ -138,7 +144,7 @@ def generate_fato_workforce(colaboradores_df, clientes_df, datas_df, regioes_df)
 
         # busca colaborador aleatório ativo
         ativos = colaboradores_df[colaboradores_df["status"] == "Active"]
-        employee = ativos.sample(1).iloc[0]
+        employee = ativos.sample(1, random_state=random.randrange(2**32)).iloc[0]
 
         for date_id in sampled_dates:
             planned = round(random.uniform(140, 176), 1)
@@ -185,6 +191,7 @@ def main():
     print(f"      {len(fato_workforce)} registros gerados.")
 
     print("\n Enviando dados ao MySQL...")
+    engine = get_engine()
     with engine.begin() as conn:
         conn.execute(text("SET FOREIGN_KEY_CHECKS = 0"))
 
