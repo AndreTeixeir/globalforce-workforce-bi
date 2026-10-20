@@ -11,7 +11,7 @@
 
 Sistema de Business Intelligence para gestão de força de trabalho que automatiza a geração e entrega de relatórios executivos mensais para clientes corporativos.
 
-O processo que antes levava **3 dias de trabalho manual no Excel** passou a ser executado em **menos de 1 hora**, com envio automático do PDF por e-mail e notificação por WhatsApp.
+No cenário da simulação, os relatórios eram montados à mão no Excel, num processo de **3 dias por cliente**, e a meta do desafio era reduzir esse tempo para **menos de 1 hora**. O sistema automatiza o fluxo de ponta a ponta, do dado ao PDF, com envio automático por e-mail e notificação por WhatsApp.
 
 O sistema pode ser operado por uma **interface web (Flask)** ou por um **menu de terminal (CLI)** — ambos permitem gerenciar clientes e disparar a geração e o envio dos relatórios.
 
