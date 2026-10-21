@@ -1,15 +1,18 @@
 [
   {
+    "id": "a1f3c9e20b47",
     "name": "Alpha Group",
     "email": "contato@alphagroup.example.com",
     "whatsapp": "+5511999990001"
   },
   {
+    "id": "b82d4e6f1c05",
     "name": "Beta Corp",
     "email": "financeiro@betacorp.example.com",
     "whatsapp": "+5511999990002"
   },
   {
+    "id": "d4c7a9b3e612",
     "name": "Delta Solutions",
     "email": "contato@deltasolutions.example.com",
     "whatsapp": "+5511999990003"

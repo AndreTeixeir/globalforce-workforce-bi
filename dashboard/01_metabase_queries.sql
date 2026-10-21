@@ -7,6 +7,14 @@ Instruções: Use "Field Filter" para as 3 variáveis:
 {{region}} -> dim_regiao.region_name
 {{client}} -> dim_cliente.client_name
 {{date}}   -> dim_data.period
+
+IMPORTANTE: toda query que usa um filtro precisa ter o JOIN da tabela
+correspondente. O Field Filter gera uma referência qualificada
+(ex.: dim_cliente.client_name); sem o JOIN o MySQL retorna
+"Unknown column".
+
+Este arquivo é a referência versionada. Ao alterar uma query aqui,
+cole a nova versão na pergunta correspondente dentro do Metabase.
 */
 
 -- 1. KPI: Turnover Mensal (%)
@@ -47,7 +55,8 @@ SELECT
     SUM(fato_workforce.monthly_cost) as total_cost_usd
 FROM fato_workforce
 JOIN dim_regiao ON fato_workforce.region_id = dim_regiao.region_id
-JOIN dim_data ON fato_workforce.date_id = dim_data.date_id -- Adicionado este JOIN
+JOIN dim_data ON fato_workforce.date_id = dim_data.date_id
+JOIN dim_cliente ON fato_workforce.assignment_id = dim_cliente.assignment_id -- necessário para o filtro {{client}}
 WHERE 1=1
   [[AND {{region}}]]
   [[AND {{client}}]]
@@ -62,7 +71,8 @@ SELECT
     AVG(fato_workforce.goal_achievement) as avg_goal_pct
 FROM fato_workforce
 JOIN dim_cliente ON fato_workforce.assignment_id = dim_cliente.assignment_id
-JOIN dim_data ON fato_workforce.date_id = dim_data.date_id -- Adicionado este JOIN
+JOIN dim_data ON fato_workforce.date_id = dim_data.date_id
+JOIN dim_regiao ON fato_workforce.region_id = dim_regiao.region_id -- necessário para o filtro {{region}}
 WHERE 1=1
   [[AND {{region}}]]
   [[AND {{client}}]]

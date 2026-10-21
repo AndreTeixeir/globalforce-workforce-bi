@@ -1,8 +1,8 @@
-pandas
-numpy
-sqlalchemy
-pymysql
-faker
-playwright
-python-dotenv
-flask
+pandas==3.0.6
+numpy==2.4.6
+sqlalchemy==2.1.2
+pymysql==1.2.3
+faker==40.40.0
+playwright==1.63.0
+python-dotenv==1.2.4
+flask==3.1.3
